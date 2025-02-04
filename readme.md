@@ -13,4 +13,4 @@ Note for ums312/ums512/ud710 (fused)：
 
 ​	on android 9/10, you need IDA to get patched splloader ([guide](https://github.com/TomKing062/CVE-2022-38694_unlock_bootloader/wiki/patch_do_cboot%E2%80%90SPL#old-type)), then process with [CVE-2022-38691](https://github.com/TomKing062/CVE-2022-38691_38692)
 
-​	on android 11(+), you can use [gen_spl-unlock](https://raw.githubusercontent.com/TomKing062/CVE-2022-38694_unlock_bootloader/info/gen_spl-unlock.c) to get patched splloader, then process with [CVE-2022-38691](https://github.com/TomKing062/CVE-2022-38691_38692)
+​	on android 11(+), you can use gen_spl-unlock ([source_code](https://raw.githubusercontent.com/TomKing062/CVE-2022-38694_unlock_bootloader/info/gen_spl-unlock.c)|[windows_prebuilt](https://github.com/TomKing062/spreadtrum_flash/releases/latest)) to get patched splloader, then process with [CVE-2022-38691](https://github.com/TomKing062/CVE-2022-38691_38692)
