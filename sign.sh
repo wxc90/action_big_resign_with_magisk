@@ -7,8 +7,7 @@ tar xzvf avbtool.tgz -C vbmeta/
 mv work/boot* boot/boot.img
 mv work/vbmeta* vbmeta/keys/vbmeta.img
 busybox unzip -oq magisk.apk -d boot/zzz
-mv main/boot_patch_9.sh boot/
-mv main/boot_patch_10.sh boot/
+mv main/boot_patch.sh boot/
 mv main/sign_avb.sh vbmeta/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/v2/prebuilt/* work/
@@ -77,21 +76,14 @@ elif [ -f "trustos.bin" ]; then
     fi
 fi
 
-if [ ! -f "teecfg.bin" ]; then
-    cd ../boot
-    ./boot_patch_9.sh
-else
-    ./get-raw-image "teecfg.bin"
-    RETVAL=$?
-    if [ $RETVAL -ne 0 ]; then
-        rm teecfg.bin
-        cd ../boot
-        ./boot_patch_9.sh
-    else
-        cd ../boot
-        ./boot_patch_10.sh
-    fi
+./get-raw-image "teecfg.bin"
+RETVAL=$?
+if [ $RETVAL -ne 0 ]; then
+    rm teecfg.bin
 fi
+
+cd ../boot
+./boot_patch.sh
 
 cd ../vbmeta
 ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
