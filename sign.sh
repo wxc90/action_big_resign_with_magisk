@@ -28,8 +28,8 @@ cp work/config-unisoc/rsa4096_boot.pem vbmeta/
 cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/
 cp work/config-unisoc/rsa4096_vbmeta.pem vbmeta/
 chmod +x vbmeta/*
-sudo rm -rf /usr/bin/python
-sudo ln -s /usr/bin/python2 /usr/bin/python
+sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
+sudo ln -sf /usr/bin/python2.7 /usr/bin/python
 cd work
 
 if [ -f "splloader.bin" ]; then
