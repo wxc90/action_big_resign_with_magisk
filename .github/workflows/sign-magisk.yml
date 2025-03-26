@@ -1,4 +1,4 @@
-name: sign-one-partition-only
+name: sign-one-partition-only-magisk
 
 on:
   workflow_dispatch:
