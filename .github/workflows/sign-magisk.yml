@@ -36,13 +36,13 @@ jobs:
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
         mkdir -p boot/zzz
+        mkdir work
         mv main/boot_patch.sh boot/
         mv main/sign_avb.sh work/
         chmod +x boot/*
         chmod +x work/*
         busybox unzip -oq magisk.apk -d boot/zzz
         curl -o boot/boot.img -L "${{ github.event.inputs.IMG_URL }}"
-        mkdir work
         tar xzvf avbtool.tgz -C work/
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
