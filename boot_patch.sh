@@ -89,9 +89,6 @@ else
 fi
 echo "cpu_abi: $cpu_abi"
 
-echo -n "RANDOMSEED=" > config
-tr -dc A-Za-z0-9 </dev/urandom | head -c 8 >> config
-echo -ne "\n" >> config
 echo "KEEPVERITY=$KEEPVERITY" >> config
 echo "KEEPFORCEENCRYPT=$KEEPFORCEENCRYPT" >> config
 echo "RECOVERYMODE=$RECOVERYMODE" >> config
