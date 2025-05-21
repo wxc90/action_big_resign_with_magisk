@@ -43,6 +43,36 @@ if [ -f "splloader.bin" ]; then
     fi
 fi
 
+if [ -f "u-boot-spl-16k-sign.bin" ]; then
+    ./get-raw-image "u-boot-spl-16k-sign.bin"
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+        mv u-boot-spl-16k-sign.bin u-boot-spl-16k.bin
+    else
+        exit 1
+    fi
+fi
+
+if [ -f "u-boot-spl-16k-emmc-sign.bin" ]; then
+    ./get-raw-image "u-boot-spl-16k-emmc-sign.bin"
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+        mv u-boot-spl-16k-emmc-sign.bin u-boot-spl-16k-emmc.bin
+    else
+        exit 1
+    fi
+fi
+
+if [ -f "u-boot-spl-16k-ufs-sign.bin" ]; then
+    ./get-raw-image "u-boot-spl-16k-ufs-sign.bin"
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]; then
+        mv u-boot-spl-16k-ufs-sign.bin u-boot-spl-16k-ufs.bin
+    else
+        exit 1
+    fi
+fi
+
 if [ -f "uboot.bin" ]; then
     ./get-raw-image "uboot.bin"
     RETVAL=$?
