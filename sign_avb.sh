@@ -11,4 +11,6 @@ while IFS= read -r line; do
     CMD="$CMD --prop $PROP_KEY:$PROP_VALUE"
 done < "$PROP_FILE"
 rm "$PROP_FILE"
+echo "$INFO_OUTPUT"
+echo "$CMD"
 $CMD
