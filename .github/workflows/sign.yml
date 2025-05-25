@@ -59,6 +59,8 @@ jobs:
         chmod +x work/*
         git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
         cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
+        cp -f work/rsa4096_boot.pem work/rsa4096_dtb.pem
+        cp -f work/rsa4096_boot.pem work/rsa4096_dtbo.pem
         if [ -d extra_key ]; then cp -f extra_key/*.pem work/; fi
         sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
         sudo ln -sf /usr/bin/python2.7 /usr/bin/python

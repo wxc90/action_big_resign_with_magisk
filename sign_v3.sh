@@ -121,6 +121,30 @@ cd ../vbmeta
 cp ../boot/patched.img ../output/boot.img
 cd ..
 
+mkdir dtbo
+mv work/dtbo* dtbo/dtbo.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config/rsa4096_boot.pem vbmeta/rsa4096_dtbo.pem
+    cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtbo_pub.bin
+    cd vbmeta
+    ./sign_avb.sh dtbo ../dtbo/dtbo.img ../dtbo/dtbo.img
+    cp ../dtbo/dtbo.img ../output/dtbo.img
+    cd ..
+fi
+
+mkdir dtb
+mv work/dtb* dtb/dtb.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config/rsa4096_boot.pem vbmeta/rsa4096_dtb.pem
+    cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtb_pub.bin
+    cd vbmeta
+    ./sign_avb.sh dtb ../dtb/dtb.img ../dtb/dtb.img
+    cp ../dtb/dtb.img ../output/dtb.img
+    cd ..
+fi
+
 mkdir recovery
 mv work/recovery* recovery/recovery.img
 RETVAL=$?

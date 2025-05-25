@@ -97,7 +97,7 @@ echo "PREINITDEVICE=$PREINITDEVICE" >> config
 
 # Compress to save precious ramdisk space
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libmagisk.so magisk.xz
-../magiskboot compress=xz zzz/assets/stub.apk stub.xz
+../magiskboot compress=xz ../magisk.apk stub.xz
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libinit-ld.so init-ld.xz
 
 ../magiskboot cpio ramdisk.cpio \
