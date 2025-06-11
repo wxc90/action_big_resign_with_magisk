@@ -77,7 +77,7 @@ fi
 echo "- Patching ramdisk"
 mkdir cpiotmp
 cd cpiotmp
-sudo cpio -idv < ../ramdisk.cpio
+sudo busybox cpio -idv < ../ramdisk.cpio
 cd ..
 if [ ! -f "cpiotmp/prop.default" ]; then
     cpu_abi="arm64-v8a"
