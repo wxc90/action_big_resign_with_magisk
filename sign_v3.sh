@@ -4,7 +4,6 @@ mkdir -p boot/zzz
 mkdir -p vbmeta/keys
 mkdir output
 tar xzvf avbtool.tgz -C vbmeta/
-mv work/boot* boot/boot.img
 mv work/vbmeta* vbmeta/keys/vbmeta.img
 busybox unzip -oq magisk.apk -d boot/zzz
 mv main/boot_patch.sh boot/
@@ -25,8 +24,6 @@ cd ../../vbmeta/keys/
 mv sign_vbmeta.sh ../
 mv padding.py ../
 cd ../..
-cp work/config/rsa4096_boot.pem vbmeta/
-cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/
 cp work/config/rsa4096_vbmeta.pem vbmeta/
 chmod +x vbmeta/*
 sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
@@ -113,13 +110,40 @@ if [ $RETVAL -ne 0 ]; then
     rm teecfg.bin
 fi
 
-cd ../boot
-./boot_patch.sh
-
-cd ../vbmeta
-./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
-cp ../boot/patched.img ../output/boot.img
 cd ..
+
+mv work/init_boot* boot/boot.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config/rsa4096_init_boot.pem vbmeta/rsa4096_init_boot.pem
+    cp -f work/config/rsa4096_init_boot_pub.bin vbmeta/keys/rsa4096_init_boot_pub.bin
+    cd boot
+    ./boot_patch.sh
+    cd ../vbmeta
+    ./sign_avb.sh init_boot ../boot/boot.img ../boot/patched.img
+    cp ../boot/patched.img ../output/init_boot.img
+    cd ..
+fi
+
+mv work/boot* boot/boot_real.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config/rsa4096_boot.pem vbmeta/rsa4096_boot.pem
+    cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_boot_pub.bin
+    if [ -f output/init_boot.img ]; then
+        cd vbmeta
+        ./sign_avb.sh boot ../boot/boot_real.img ../boot/boot_real.img
+        cp ../boot/boot_real.img ../output/boot.img
+    else
+        cd boot
+	cp -f boot_real.img boot.img
+        ./boot_patch.sh
+        cd ../vbmeta
+        ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
+        cp ../boot/patched.img ../output/boot.img
+    fi
+    cd ..
+fi
 
 mkdir dtbo
 mv work/dtbo* dtbo/dtbo.img

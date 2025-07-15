@@ -11,6 +11,9 @@ on:
         description: 'partition name of your image (eg. boot/recovery)'
         required: true
         default: ''
+      PART_SIZE:    
+        description: 'partition size (unit: mb)'
+        required: false
       EXTRA_KEY_TREE_URL:
         description: 'EXTRA_KEY_TREE_URL (leave blank if you only use unisoc keys)'
         required: false
@@ -64,15 +67,16 @@ jobs:
         busybox unzip -oq magisk.apk -d boot/zzz
         curl -o boot/boot.img -L "${{ github.event.inputs.IMG_URL }}"
         tar xzvf avbtool.tgz -C work/
-        git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
-        cp vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc/*.pem work/
+        cp main/config/*.pem work/
+        cp -f work/rsa4096_boot.pem work/rsa4096_dtb.pem
+        cp -f work/rsa4096_boot.pem work/rsa4096_dtbo.pem
         if [ -d extra_key ]; then cp -f extra_key/*.pem work/; fi
         sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
         sudo ln -sf /usr/bin/python2.7 /usr/bin/python
         cd boot
         ./boot_patch.sh
         cd ../work
-        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../boot/boot.img ../boot/patched.img
+        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../boot/boot.img ../boot/patched.img ${{ github.event.inputs.PART_SIZE }}
         cp ../boot/patched.img ../image.img
 
     - name: Upload to Release

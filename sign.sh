@@ -4,14 +4,13 @@ mkdir -p boot/zzz
 mkdir -p vbmeta/keys
 mkdir output
 tar xzvf avbtool.tgz -C vbmeta/
-mv work/boot* boot/boot.img
 mv work/vbmeta* vbmeta/keys/vbmeta.img
 busybox unzip -oq magisk.apk -d boot/zzz
 mv main/boot_patch.sh boot/
 mv main/sign_avb.sh vbmeta/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/v2/prebuilt/* work/
-cp -a vendor_sprd_proprietories-source_packimage/sign_image/config-unisoc work/
+cp -a main/config work/config-unisoc
 if [ -d extra_key ]; then cp -f extra_key/* work/config-unisoc/; fi
 cp vendor_sprd_proprietories-source_packimage/sign_image/v2/sign_image_v2.sh work/
 gcc -o work/get-raw-image vendor_sprd_proprietories-source_packimage/sign_image/get-raw-image.c
@@ -25,8 +24,6 @@ cd ../../vbmeta/keys/
 mv sign_vbmeta.sh ../
 mv padding.py ../
 cd ../..
-cp work/config-unisoc/rsa4096_boot.pem vbmeta/
-cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/
 cp work/config-unisoc/rsa4096_vbmeta.pem vbmeta/
 chmod +x vbmeta/*
 sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
@@ -113,20 +110,47 @@ if [ $RETVAL -ne 0 ]; then
     rm teecfg.bin
 fi
 
-cd ../boot
-./boot_patch.sh
-
-cd ../vbmeta
-./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
-cp ../boot/patched.img ../output/boot.img
 cd ..
+
+mv work/init_boot* boot/boot.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config-unisoc/rsa4096_init_boot.pem vbmeta/rsa4096_init_boot.pem
+    cp -f work/config-unisoc/rsa4096_init_boot_pub.bin vbmeta/keys/rsa4096_init_boot_pub.bin
+    cd boot
+    ./boot_patch.sh
+    cd ../vbmeta
+    ./sign_avb.sh init_boot ../boot/boot.img ../boot/patched.img
+    cp ../boot/patched.img ../output/init_boot.img
+    cd ..
+fi
+
+mv work/boot* boot/boot_real.img
+RETVAL=$?
+if [ $RETVAL -eq 0 ]; then
+    cp work/config-unisoc/rsa4096_boot.pem vbmeta/rsa4096_boot.pem
+    cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_boot_pub.bin
+    if [ -f output/init_boot.img ]; then
+        cd vbmeta
+        ./sign_avb.sh boot ../boot/boot_real.img ../boot/boot_real.img
+        cp ../boot/boot_real.img ../output/boot.img
+    else
+        cd boot
+	cp -f boot_real.img boot.img
+        ./boot_patch.sh
+        cd ../vbmeta
+        ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
+        cp ../boot/patched.img ../output/boot.img
+    fi
+    cd ..
+fi
 
 mkdir dtbo
 mv work/dtbo* dtbo/dtbo.img
 RETVAL=$?
 if [ $RETVAL -eq 0 ]; then
-    cp work/config/rsa4096_boot.pem vbmeta/rsa4096_dtbo.pem
-    cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtbo_pub.bin
+    cp work/config-unisoc/rsa4096_boot.pem vbmeta/rsa4096_dtbo.pem
+    cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtbo_pub.bin
     cd vbmeta
     ./sign_avb.sh dtbo ../dtbo/dtbo.img ../dtbo/dtbo.img
     cp ../dtbo/dtbo.img ../output/dtbo.img
@@ -137,8 +161,8 @@ mkdir dtb
 mv work/dtb* dtb/dtb.img
 RETVAL=$?
 if [ $RETVAL -eq 0 ]; then
-    cp work/config/rsa4096_boot.pem vbmeta/rsa4096_dtb.pem
-    cp -f work/config/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtb_pub.bin
+    cp work/config-unisoc/rsa4096_boot.pem vbmeta/rsa4096_dtb.pem
+    cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_dtb_pub.bin
     cd vbmeta
     ./sign_avb.sh dtb ../dtb/dtb.img ../dtb/dtb.img
     cp ../dtb/dtb.img ../output/dtb.img
