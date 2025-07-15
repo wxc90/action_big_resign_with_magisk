@@ -1,3 +1,9 @@
+SIZE_LIMIT=$((35*1024*1024))
+FILE_SIZE=$(stat -c%s boot.img)
+if [ "$FILE_SIZE" -lt "$SIZE_LIMIT" ]; then
+    cp -f zzz/assets/stub.apk ../magisk.apk
+fi
+
 # Flags
 export KEEPVERITY=true
 export KEEPFORCEENCRYPT=true
@@ -53,8 +59,6 @@ case $((STATUS & 3)) in
     ;;
   1 )  # Magisk patched
     echo "Magisk patched boot image detected"
-    # Find SHA1 of stock boot image
-    [ -z $SHA1 ] && SHA1=$(../magiskboot cpio ramdisk.cpio sha1)
     ../magiskboot cpio ramdisk.cpio restore
     cp -af ramdisk.cpio ramdisk.cpio.orig 2>/dev/null
     ;;
@@ -63,12 +67,6 @@ case $((STATUS & 3)) in
     echo "Please restore back to stock boot image"
     ;;
 esac
-
-# Work around custom legacy Sony /init -> /(s)bin/init_sony : /init.real setup
-INIT=init
-if [ $((STATUS & 4)) -ne 0 ]; then
-  INIT=init.real
-fi
 
 ##################
 # Ramdisk Patches
