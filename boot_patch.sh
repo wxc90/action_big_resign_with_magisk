@@ -1,7 +1,12 @@
 SIZE_LIMIT=$((35*1024*1024))
-FILE_SIZE=$(stat -c%s boot.img)
-if [ "$FILE_SIZE" -lt "$SIZE_LIMIT" ]; then
-    cp -f zzz/assets/stub.apk ../magisk.apk
+if [ -n "$1" ]; then
+    FILE_SIZE=$(($1 * 1024 * 1024))
+else
+    FILE_SIZE=$(stat -c%s boot.img)
+fi
+
+if [ "$FILE_SIZE" -ge "$SIZE_LIMIT" ]; then
+    cp -f ../magisk.apk zzz/assets/stub.apk
 fi
 
 # Flags
@@ -95,11 +100,11 @@ echo "PREINITDEVICE=$PREINITDEVICE" >> config
 
 # Compress to save precious ramdisk space
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libmagisk.so magisk.xz
-../magiskboot compress=xz ../magisk.apk stub.xz
+../magiskboot compress=xz zzz/assets/stub.apk stub.xz
 ../magiskboot compress=xz zzz/lib/$cpu_abi/libinit-ld.so init-ld.xz
 
 ../magiskboot cpio ramdisk.cpio \
-"add 0750 $INIT zzz/lib/$cpu_abi/libmagiskinit.so" \
+"add 0750 init zzz/lib/$cpu_abi/libmagiskinit.so" \
 "mkdir 0750 overlay.d" \
 "mkdir 0750 overlay.d/sbin" \
 "add 0644 overlay.d/sbin/magisk.xz magisk.xz" \

@@ -74,7 +74,7 @@ jobs:
         sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
         sudo ln -sf /usr/bin/python2.7 /usr/bin/python
         cd boot
-        ./boot_patch.sh
+        ./boot_patch.sh ${{ github.event.inputs.PART_SIZE }}
         cd ../work
         ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../boot/boot.img ../boot/patched.img ${{ github.event.inputs.PART_SIZE }}
         cp ../boot/patched.img ../image.img
