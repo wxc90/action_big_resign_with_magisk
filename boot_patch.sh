@@ -168,7 +168,11 @@ fi
 #################
 
 echo "- Repacking boot image"
-../magiskboot compress ramdisk.cpio ramdisk.cpio.gz
-rm ramdisk.cpio
-mv ramdisk.cpio.gz ramdisk.cpio
-../magiskboot repack -n boot.img patched.img || echo "! Unable to repack boot image"
+if [ "$SKIP_BACKUP" = "#" ]; then
+    ../magiskboot compress ramdisk.cpio ramdisk.cpio.gz
+    rm ramdisk.cpio
+    mv ramdisk.cpio.gz ramdisk.cpio
+    ../magiskboot repack -n boot.img patched.img || echo "! Unable to repack boot image"
+else
+    ../magiskboot repack boot.img patched.img || echo "! Unable to repack boot image"
+fi
