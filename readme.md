@@ -18,3 +18,9 @@ Note for ums312/ums512/ud710 (fused)：
 Note for ums9230/ums9620/ums9621：
 
 ​	use resign_v3
+
+Note for android 9：
+
+​	if resign in main branch not work for you, try use resign in a9_boot_with_recovery_cpio branch
+  <img width="1645" height="627" alt="image" src="https://github.com/user-attachments/assets/c28f37b6-e044-44f2-b0e7-7ce29e541501" />
+
