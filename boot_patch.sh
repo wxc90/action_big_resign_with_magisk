@@ -12,7 +12,7 @@ fi
 # Flags
 export KEEPVERITY=true
 export KEEPFORCEENCRYPT=true
-export RECOVERYMODE=false
+export RECOVERYMODE=true
 export PREINITDEVICE=cache
 
 #########
@@ -48,13 +48,9 @@ echo "Checking ramdisk status"
 if [ -e ramdisk.cpio ]; then
   ../magiskboot cpio ramdisk.cpio test
   STATUS=$?
-  SKIP_BACKUP=""
 else
   # Stock A only legacy SAR, or some Android 13 GKIs
-  cp ../main/ramdisk.cpio ramdisk.cpio
-  RECOVERYMODE=true
   STATUS=0
-  SKIP_BACKUP="#"
 fi
 case $((STATUS & 3)) in
   0 )  # Stock boot
@@ -111,7 +107,7 @@ echo "PREINITDEVICE=$PREINITDEVICE" >> config
 "add 0644 overlay.d/sbin/stub.xz stub.xz" \
 "add 0644 overlay.d/sbin/init-ld.xz init-ld.xz" \
 "patch" \
-"$SKIP_BACKUP backup ramdisk.cpio.orig" \
+"backup ramdisk.cpio.orig" \
 "mkdir 000 .backup" \
 "add 000 .backup/.magisk config"
 
@@ -169,10 +165,5 @@ fi
 
 echo "- Repacking boot image"
 if [ "$SKIP_BACKUP" = "#" ]; then
-    ../magiskboot compress ramdisk.cpio ramdisk.cpio.gz
-    rm ramdisk.cpio
-    mv ramdisk.cpio.gz ramdisk.cpio
-    ../magiskboot repack -n boot.img patched.img || echo "! Unable to repack boot image"
-else
     ../magiskboot repack boot.img patched.img || echo "! Unable to repack boot image"
 fi

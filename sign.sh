@@ -112,36 +112,36 @@ fi
 
 cd ..
 
-mv work/init_boot* boot/boot.img
+mkdir recovery
+mv work/recovery* recovery/recovery.img
 RETVAL=$?
 if [ $RETVAL -eq 0 ]; then
-    cp work/config-unisoc/rsa4096_init_boot.pem vbmeta/rsa4096_init_boot.pem
-    cp -f work/config-unisoc/rsa4096_init_boot_pub.bin vbmeta/keys/rsa4096_init_boot_pub.bin
-    cd boot
-    ./boot_patch.sh
-    cd ../vbmeta
-    ./sign_avb.sh init_boot ../boot/boot.img ../boot/patched.img
-    cp ../boot/patched.img ../output/init_boot.img
+    cp work/config-unisoc/rsa4096_recovery.pem vbmeta/
+    cp -f work/config-unisoc/rsa4096_recovery_pub.bin vbmeta/keys/
+    cd vbmeta
+    ./sign_avb.sh recovery ../recovery/recovery.img ../recovery/recovery.img
+    cp ../recovery/recovery.img ../output/recovery.img
     cd ..
 fi
 
-mv work/boot* boot/boot_real.img
+mv work/boot* boot/boot.img
 RETVAL=$?
 if [ $RETVAL -eq 0 ]; then
     cp work/config-unisoc/rsa4096_boot.pem vbmeta/rsa4096_boot.pem
     cp -f work/config-unisoc/rsa4096_boot_pub.bin vbmeta/keys/rsa4096_boot_pub.bin
-    if [ -f output/init_boot.img ]; then
-        cd vbmeta
-        ./sign_avb.sh boot ../boot/boot_real.img ../boot/boot_real.img
-        cp ../boot/boot_real.img ../output/boot.img
-    else
-        cd boot
-	cp -f boot_real.img boot.img
-        ./boot_patch.sh
-        cd ../vbmeta
-        ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img
-        cp ../boot/patched.img ../output/boot.img
-    fi
+    cd recovery
+    ../magiskboot unpack -n recovery.img
+    cd ../boot
+    ../magiskboot unpack -n boot.img
+    cp -f ../recovery/ramdisk.cpio ./
+    ../magiskboot repack -n boot.img
+    rm boot.img
+    mv new-boot.img boot.img
+    ../magiskboot cleanup
+    ./boot_patch.sh 35
+    cd ../vbmeta
+    ./sign_avb.sh boot ../boot/boot.img ../boot/patched.img 35
+    cp ../boot/patched.img ../output/boot.img
     cd ..
 fi
 
@@ -166,18 +166,6 @@ if [ $RETVAL -eq 0 ]; then
     cd vbmeta
     ./sign_avb.sh dtb ../dtb/dtb.img ../dtb/dtb.img
     cp ../dtb/dtb.img ../output/dtb.img
-    cd ..
-fi
-
-mkdir recovery
-mv work/recovery* recovery/recovery.img
-RETVAL=$?
-if [ $RETVAL -eq 0 ]; then
-    cp work/config-unisoc/rsa4096_recovery.pem vbmeta/
-    cp -f work/config-unisoc/rsa4096_recovery_pub.bin vbmeta/keys/
-    cd vbmeta
-    ./sign_avb.sh recovery ../recovery/recovery.img ../recovery/recovery.img
-    cp ../recovery/recovery.img ../output/recovery.img
     cd ..
 fi
 
