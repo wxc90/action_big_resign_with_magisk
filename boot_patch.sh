@@ -164,6 +164,4 @@ fi
 #################
 
 echo "- Repacking boot image"
-if [ "$SKIP_BACKUP" = "#" ]; then
-    ../magiskboot repack boot.img patched.img || echo "! Unable to repack boot image"
-fi
+../magiskboot repack boot.img patched.img || echo "! Unable to repack boot image"
