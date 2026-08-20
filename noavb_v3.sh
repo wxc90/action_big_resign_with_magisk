@@ -1,11 +1,13 @@
 mkdir work
-busybox unzip -oq original.zip -d work
+# static 7zz replaces busybox unzip; 7zz exit code 1 = warnings only (archive still fully extracted), tolerate it like unzip did
+7zz x -y -bd -owork/ original.zip || [ "$?" -eq 1 ]
 mkdir -p boot/zzz
 mkdir -p vbmeta/keys
 mkdir output
-tar xzvf avbtool.tgz -C vbmeta/
+cp main/avbctl/avbctl vbmeta/
+chmod +x vbmeta/avbctl
 mv work/vbmeta* vbmeta/keys/vbmeta.img
-busybox unzip -oq magisk.apk -d boot/zzz
+7zz x -y -bd -oboot/zzz/ magisk.apk || [ "$?" -eq 1 ]
 mv main/boot_patch.sh boot/
 git clone https://github.com/TomKing062/vendor_sprd_proprietories-source_packimage.git
 cp -a vendor_sprd_proprietories-source_packimage/sign_image/v3/prebuilt/* work/
@@ -25,10 +27,10 @@ cd ../../vbmeta/keys/
 mv sign_vbmeta.sh ../
 mv padding.py ../
 cd ../..
+# rewrite the generated script to use avbctl instead of "python avbtool"
+sed -i "s|^python avbtool |./avbctl |" vbmeta/sign_vbmeta.sh
 cp work/config/rsa4096_vbmeta.pem vbmeta/
 chmod +x vbmeta/*
-sudo rm -f /usr/bin/python /usr/bin/python3.6 /usr/bin/python3.6m /usr/local/bin/python
-sudo ln -sf /usr/bin/python2.7 /usr/bin/python
 cd work
 
 if [ -f "splloader.bin" ]; then
@@ -147,7 +149,7 @@ fi
 
 cd vbmeta
 ./sign_vbmeta.sh
-python padding.py
+python3 padding.py
 cp vbmeta-sign-custom.img ../output/vbmeta.img
 
 cd ../work
