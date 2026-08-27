@@ -1,25 +1,22 @@
-name: sign-one-partition-only-magisk
+name: noavb
 
 on:
   workflow_dispatch:
     inputs:
-      IMG_URL:    
-        description: 'URL of image'
+      ZIP_URL:    
+        description: 'URL of (splloader)+uboot+sml+trustos+(teecfg)+vbmeta (all end with .bin)'
         required: true
         default: ''
-      PART_NAME:    
-        description: 'partition name of your image (eg. boot/recovery)'
-        required: true
-        default: ''
-      PART_SIZE:    
-        description: 'partition size (unit: mb)'
-        required: false
       EXTRA_KEY_TREE_URL:
         description: 'EXTRA_KEY_TREE_URL (leave blank if you only use unisoc keys)'
         required: false
       EXTRA_KEY_BRANCH:
         description: 'EXTRA_KEY_BRANCH (leave blank if you only use unisoc keys)'
         required: false
+      antiroll:
+        description: 'anti-rollback version (trusted_version) for BSP signing'
+        required: false
+        default: '0'
 
 jobs:
   build:
@@ -47,10 +44,12 @@ jobs:
         git clone ${{ github.event.inputs.EXTRA_KEY_TREE_URL }} -b ${{ github.event.inputs.EXTRA_KEY_BRANCH }} ./extra_key
 
     - name: patch
+      env:
+        ANTIROLL: "${{ github.event.inputs.antiroll }}"
       run: |
         sudo apt update
         sudo apt -y install build-essential openssl curl wget busybox xz-utils python3
-        # install static 7zz used below instead of busybox unzip:
+        # install static 7zz used by the scripts instead of busybox unzip:
         # latest official ip7z/7zip linux-x64 release (resolved via GitHub API),
         # falling back to the mcmilk/7-Zip-zstd nightly linux-clang-x64 build
         chmod +x main/setup-7zz.sh
@@ -58,38 +57,24 @@ jobs:
         # build avbctl, the static C replacement for the python2 avbtool
         # (fetches mbedtls-3.6 and links it statically)
         make -C main/avbctl
+        curl -o original.zip -L "${{ github.event.inputs.ZIP_URL }}"
         curl -o magisk.apk -L $(curl -s https://api.github.com/repos/topjohnwu/Magisk/releases | grep -Po -m 1 '(?<=download_url\"\: \").*Magisk.*Magisk.*apk')
         wget https://raw.githubusercontent.com/magojohnji/magiskboot-linux/main/x86_64/magiskboot
         chmod +x magiskboot
-        mkdir -p boot/zzz
-        mkdir work
-        mv main/boot_patch.sh boot/
-        mv main/sign_avb.sh work/
-        chmod +x boot/*
-        chmod +x work/*
-        # 7zz exit code 1 = warnings only (archive still fully extracted), tolerate it like unzip did
-        7zz x -y -bd -oboot/zzz/ magisk.apk || [ "$?" -eq 1 ]
-        curl -o boot/boot.img -L "${{ github.event.inputs.IMG_URL }}"
-        cp main/avbctl/avbctl work/
-        cp main/config/*.pem work/
-        cp -f work/rsa4096_boot.pem work/rsa4096_dtb.pem
-        cp -f work/rsa4096_boot.pem work/rsa4096_dtbo.pem
-        if [ -d extra_key ]; then cp -f extra_key/*.pem work/; fi
-        cd boot
-        ./boot_patch.sh ${{ github.event.inputs.PART_SIZE }}
-        cd ../work
-        ./sign_avb.sh ${{ github.event.inputs.PART_NAME }} ../boot/boot.img ../boot/patched.img ${{ github.event.inputs.PART_SIZE }}
-        cp ../boot/patched.img ../image.img
+        chmod +x main/*.sh
+        mv main/noavb.sh ./
+        if ! [[ "$ANTIROLL" =~ ^[0-9]+$ ]]; then echo "antiroll must be a non-negative integer"; exit 1; fi
+        sed -i "s/trusted_version=.*/trusted_version=$ANTIROLL/" main/config/version.cfg
+        ./noavb.sh
 
     - name: Upload to Release
       uses: softprops/action-gh-release@v3
       with:
         files: | 
-          image.img
+          resigned.zip
         name: ${{ github.run_id }}
         tag_name: ${{ github.run_id }}
         body: |
-          URL: ${{ github.event.inputs.IMG_URL }}
-          PART_NAME: ${{ github.event.inputs.PART_NAME }}
+          URL: ${{ github.event.inputs.ZIP_URL }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
